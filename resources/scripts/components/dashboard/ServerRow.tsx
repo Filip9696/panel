@@ -40,6 +40,7 @@ const StatusIndicatorBox = styled(GreyRowBox)<{ $status: ServerPowerState | unde
 `;
 
 export default ({ server, className }: { server: Server; className?: string }) => {
+    console.log(server);
     const interval = useRef<number>(null);
     const [ isSuspended, setIsSuspended ] = useState(server.isSuspended);
     const [ stats, setStats ] = useState<ServerStats | null>(null);
@@ -85,6 +86,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
                 </div>
                 <div>
                     <p css={tw`text-lg break-words`}>{server.name}</p>
+                    <p>{server.eggFeatures[0]}</p>
                     {!!server.description &&
                     <p css={tw`text-sm text-neutral-300 break-words`}>{server.description}</p>
                     }
