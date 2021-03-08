@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEthernet, faHdd, faMemory, faMicrochip, faServer } from '@fortawesome/free-solid-svg-icons';
+import { faEthernet, faGlobe, faHdd, faMemory, faMicrochip, faServer } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { Server } from '@/api/server/getServer';
 import getServerResourceUsage, { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
@@ -78,32 +78,69 @@ export default ({ server, className }: { server: Server; className?: string }) =
     const disklimit = server.limits.disk !== 0 ? megabytesToHuman(server.limits.disk) : 'Unlimited';
     const memorylimit = server.limits.memory !== 0 ? megabytesToHuman(server.limits.memory) : 'Unlimited';
 
+    const club_type = server.eggFeatures[0];
+
+    let status = stats?.status;
+    
+    if (club_type === 'static') {
+        if (status === 'offline') {
+            status = 'running';
+        } else {
+            status = 'starting';
+        }
+    }
     return (
-        <StatusIndicatorBox as={Link} to={`/server/${server.id}`} className={className} $status={stats?.status}>
+        <StatusIndicatorBox as={Link} to={`/server/${server.id}`} className={className} $status={status}>
             <div css={tw`flex items-center col-span-12 sm:col-span-5 lg:col-span-6`}>
                 <div className={'icon'} css={tw`mr-4`}>
                     <FontAwesomeIcon icon={faServer}/>
                 </div>
                 <div>
                     <p css={tw`text-lg break-words`}>{server.name}</p>
-                    <p>{server.eggFeatures[0]}</p>
                     {!!server.description &&
                     <p css={tw`text-sm text-neutral-300 break-words`}>{server.description}</p>
                     }
                 </div>
             </div>
-            <div css={tw`hidden lg:col-span-2 lg:flex ml-4 justify-end h-full`}>
-                <FontAwesomeIcon icon={faEthernet} css={tw`text-neutral-500`}/>
-                <p css={tw`text-sm text-neutral-400 ml-2`}>
-                    {
-                        server.allocations.filter(alloc => alloc.isDefault).map(allocation => (
-                            <React.Fragment key={allocation.ip + allocation.port.toString()}>
-                                {allocation.alias || allocation.ip}:{allocation.port}
-                            </React.Fragment>
-                        ))
-                    }
-                </p>
-            </div>
+            {
+                (club_type !== 'no_port' && club_type !== 'proxy_port' && club_type !== 'static') &&
+                    <div css={tw`hidden lg:col-span-2 lg:flex ml-4 justify-end h-full`}>
+                        <FontAwesomeIcon icon={faEthernet} css={tw`text-neutral-500`}/>
+                        <p css={tw`text-sm text-neutral-400 ml-2`}>
+                            {
+                                server.allocations.filter(alloc => alloc.isDefault).map(allocation => (
+                                    <React.Fragment key={allocation.ip + allocation.port.toString()}>
+                                        {allocation.alias || allocation.ip}:{allocation.port}
+                                    </React.Fragment>
+                                ))
+                            }
+                        </p>
+                    </div>
+            }
+            {
+                (club_type === 'proxy_port' || club_type === 'static') && <>
+                    <div css={tw`hidden lg:col-span-2 lg:flex ml-4 justify-end h-full`}>
+                        <FontAwesomeIcon icon={faGlobe} css={tw`text-neutral-500`}/>
+                        <p css={tw`text-sm text-neutral-400 ml-2`}>
+                            {
+                                'https://' + server.variables.find(x => x.envVariable === "DOMAIN")?.serverValue
+                            }
+                        </p>
+                    </div>
+                    <div css={tw`hidden lg:col-span-2 lg:flex ml-4 justify-end h-full`}>
+                        <FontAwesomeIcon icon={faEthernet} css={tw`text-neutral-500`}/>
+                        <p css={tw`text-sm text-neutral-400 ml-2`}>
+                            {
+                                server.allocations.filter(alloc => alloc.isDefault).map(allocation => (
+                                    <React.Fragment key={allocation.port.toString()}>
+                                        :{allocation.port}
+                                    </React.Fragment>
+                                ))
+                            }
+                        </p>
+                    </div>
+                </>
+            }
             <div css={tw`hidden col-span-7 lg:col-span-4 sm:flex items-baseline justify-center`}>
                 {(!stats || isSuspended) ?
                     isSuspended ?
