@@ -10,11 +10,12 @@ use League\Flysystem\AwsS3v3\AwsS3Adapter;
 use Pterodactyl\Http\Controllers\Controller;
 use Pterodactyl\Extensions\Backups\BackupManager;
 use Pterodactyl\Repositories\Eloquent\BackupRepository;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class BackupRemoteUploadController extends Controller
 {
-    const PART_SIZE = 5 * 1024 * 1024 * 1024;
+    public const PART_SIZE = 5 * 1024 * 1024 * 1024;
 
     /**
      * @var \Pterodactyl\Repositories\Eloquent\BackupRepository
@@ -28,9 +29,6 @@ class BackupRemoteUploadController extends Controller
 
     /**
      * BackupRemoteUploadController constructor.
-     *
-     * @param \Pterodactyl\Repositories\Eloquent\BackupRepository $repository
-     * @param \Pterodactyl\Extensions\Backups\BackupManager $backupManager
      */
     public function __construct(BackupRepository $repository, BackupManager $backupManager)
     {
@@ -41,18 +39,16 @@ class BackupRemoteUploadController extends Controller
     /**
      * Returns the required presigned urls to upload a backup to S3 cloud storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param string $backup
-     *
      * @return \Illuminate\Http\JsonResponse
      *
      * @throws \Exception
+     * @throws \Throwable
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      */
     public function __invoke(Request $request, string $backup)
     {
         // Get the size query parameter.
-        $size = (int)$request->query('size');
+        $size = (int) $request->query('size');
         if (empty($size)) {
             throw new BadRequestHttpException('A non-empty "size" query parameter must be provided.');
         }
@@ -62,13 +58,13 @@ class BackupRemoteUploadController extends Controller
 
         // Prevent backups that have already been completed from trying to
         // be uploaded again.
-        if (! is_null($backup->completed_at)) {
-            return new JsonResponse([], JsonResponse::HTTP_CONFLICT);
+        if (!is_null($backup->completed_at)) {
+            throw new ConflictHttpException('This backup is already in a completed state.');
         }
 
         // Ensure we are using the S3 adapter.
         $adapter = $this->backupManager->adapter();
-        if (! $adapter instanceof AwsS3Adapter) {
+        if (!$adapter instanceof AwsS3Adapter) {
             throw new BadRequestHttpException('The configured backup adapter is not an S3 compatible adapter.');
         }
 
@@ -95,14 +91,17 @@ class BackupRemoteUploadController extends Controller
 
         // Create as many UploadPart presigned urls as needed
         $parts = [];
-        for ($i = 0; $i < ($size / self::PART_SIZE); $i++) {
+        for ($i = 0; $i < ($size / self::PART_SIZE); ++$i) {
             $parts[] = $client->createPresignedRequest(
-                $client->getCommand('UploadPart', array_merge($params, ['PartNumber' => $i + 1])), $expires
+                $client->getCommand('UploadPart', array_merge($params, ['PartNumber' => $i + 1])),
+                $expires
             )->getUri()->__toString();
         }
 
+        // Set the upload_id on the backup in the database.
+        $backup->update(['upload_id' => $params['UploadId']]);
+
         return new JsonResponse([
-            'upload_id' => $params['UploadId'],
             'parts' => $parts,
             'part_size' => self::PART_SIZE,
         ]);

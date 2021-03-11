@@ -9,6 +9,7 @@ import ServerDetailsBlock from '@/components/server/ServerDetailsBlock';
 import isEqual from 'react-fast-compare';
 import PowerControls from '@/components/server/PowerControls';
 import { EulaModalFeature } from '@feature/index';
+import ErrorBoundary from '@/components/elements/ErrorBoundary';
 
 export type PowerAction = 'start' | 'stop' | 'restart' | 'kill';
 
@@ -17,18 +18,14 @@ const ChunkedStatGraphs = lazy(() => import(/* webpackChunkName: "graphs" */'@/c
 
 const ServerConsole = () => {
     const isInstalling = ServerContext.useStoreState(state => state.server.data!.isInstalling);
-    // @ts-ignore
-    const eggFeatures: string[] = ServerContext.useStoreState(state => state.server.data!.eggFeatures, isEqual);
+    const isTransferring = ServerContext.useStoreState(state => state.server.data!.isTransferring);
+    const eggFeatures = ServerContext.useStoreState(state => state.server.data!.eggFeatures, isEqual);
 
     return (
         <ServerContentBlock title={'Console'} css={tw`flex flex-wrap`}>
             <div css={tw`w-full lg:w-1/4`}>
                 <ServerDetailsBlock/>
-                {!isInstalling ?
-                    <Can action={[ 'control.start', 'control.stop', 'control.restart' ]} matchAny>
-                        <PowerControls/>
-                    </Can>
-                    :
+                {isInstalling ?
                     <div css={tw`mt-4 rounded bg-yellow-500 p-3`}>
                         <ContentContainer>
                             <p css={tw`text-sm text-yellow-900`}>
@@ -37,11 +34,27 @@ const ServerConsole = () => {
                             </p>
                         </ContentContainer>
                     </div>
+                    :
+                    isTransferring ?
+                        <div css={tw`mt-4 rounded bg-yellow-500 p-3`}>
+                            <ContentContainer>
+                                <p css={tw`text-sm text-yellow-900`}>
+                                    This server is currently being transferred to another node and all actions
+                                    are unavailable.
+                                </p>
+                            </ContentContainer>
+                        </div>
+                        :
+                        <Can action={[ 'control.start', 'control.stop', 'control.restart' ]} matchAny>
+                            <PowerControls/>
+                        </Can>
                 }
             </div>
             <div css={tw`w-full lg:w-3/4 mt-4 lg:mt-0 lg:pl-4`}>
                 <SuspenseSpinner>
-                    <ChunkedConsole/>
+                    <ErrorBoundary>
+                        <ChunkedConsole/>
+                    </ErrorBoundary>
                     <ChunkedStatGraphs/>
                 </SuspenseSpinner>
                 {eggFeatures.includes('eula') &&

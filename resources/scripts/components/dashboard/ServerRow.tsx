@@ -26,14 +26,14 @@ const IconDescription = styled.p<{ $alarm: boolean }>`
 
 const StatusIndicatorBox = styled(GreyRowBox)<{ $status: ServerPowerState | undefined }>`
     ${tw`grid grid-cols-12 gap-4 relative`};
-    
+
     & .status-bar {
         ${tw`w-2 bg-red-500 absolute right-0 z-20 rounded-full m-1 opacity-50 transition-all duration-150`};
         height: calc(100% - 0.5rem);
-        
+
         ${({ $status }) => (!$status || $status === 'offline') ? tw`bg-red-500` : ($status === 'running' ? tw`bg-green-500` : tw`bg-yellow-500`)};
     }
-    
+
     &:hover .status-bar {
         ${tw`opacity-75`};
     }
@@ -42,7 +42,7 @@ const StatusIndicatorBox = styled(GreyRowBox)<{ $status: ServerPowerState | unde
 export default ({ server, className }: { server: Server; className?: string }) => {
     console.log(server);
     const interval = useRef<number>(null);
-    const [ isSuspended, setIsSuspended ] = useState(server.isSuspended);
+    const [ isSuspended, setIsSuspended ] = useState(server.status === 'suspended');
     const [ stats, setStats ] = useState<ServerStats | null>(null);
 
     const getStats = () => getServerResourceUsage(server.uuid)
@@ -50,8 +50,8 @@ export default ({ server, className }: { server: Server; className?: string }) =
         .catch(error => console.error(error));
 
     useEffect(() => {
-        setIsSuspended(stats?.isSuspended || server.isSuspended);
-    }, [ stats?.isSuspended, server.isSuspended ]);
+        setIsSuspended(stats?.isSuspended || server.status === 'suspended');
+    }, [ stats?.isSuspended, server.status ]);
 
     useEffect(() => {
         // Don't waste a HTTP request if there is nothing important to show to the user because
@@ -75,8 +75,8 @@ export default ({ server, className }: { server: Server; className?: string }) =
         alarms.disk = server.limits.disk === 0 ? false : isAlarmState(stats.diskUsageInBytes, server.limits.disk);
     }
 
-    const disklimit = server.limits.disk !== 0 ? megabytesToHuman(server.limits.disk) : 'Unlimited';
-    const memorylimit = server.limits.memory !== 0 ? megabytesToHuman(server.limits.memory) : 'Unlimited';
+    const diskLimit = server.limits.disk !== 0 ? megabytesToHuman(server.limits.disk) : 'Unlimited';
+    const memoryLimit = server.limits.memory !== 0 ? megabytesToHuman(server.limits.memory) : 'Unlimited';
 
     const club_type = server.eggFeatures[0];
 
@@ -146,14 +146,23 @@ export default ({ server, className }: { server: Server; className?: string }) =
                     isSuspended ?
                         <div css={tw`flex-1 text-center`}>
                             <span css={tw`bg-red-500 rounded px-2 py-1 text-red-100 text-xs`}>
-                                {server.isSuspended ? 'Suspended' : 'Connection Error'}
+                                {server.status === 'suspended' ? 'Suspended' : 'Connection Error'}
                             </span>
                         </div>
                         :
-                        server.isInstalling ?
+                        (server.isTransferring || server.status) ?
                             <div css={tw`flex-1 text-center`}>
                                 <span css={tw`bg-neutral-500 rounded px-2 py-1 text-neutral-100 text-xs`}>
-                                    Installing
+                                    {server.isTransferring ?
+                                        'Transferring'
+                                        :
+                                        server.status === 'installing' ? 'Installing' : (
+                                            server.status === 'restoring_backup' ?
+                                                'Restoring Backup'
+                                                :
+                                                'Unavailable'
+                                        )
+                                    }
                                 </span>
                             </div>
                             :
@@ -173,7 +182,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
                                     {bytesToHuman(stats.memoryUsageInBytes)}
                                 </IconDescription>
                             </div>
-                            <p css={tw`text-xs text-neutral-600 text-center mt-1`}>of {memorylimit}</p>
+                            <p css={tw`text-xs text-neutral-600 text-center mt-1`}>of {memoryLimit}</p>
                         </div>
                         <div css={tw`flex-1 ml-4 sm:block hidden`}>
                             <div css={tw`flex justify-center`}>
@@ -182,7 +191,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
                                     {bytesToHuman(stats.diskUsageInBytes)}
                                 </IconDescription>
                             </div>
-                            <p css={tw`text-xs text-neutral-600 text-center mt-1`}>of {disklimit}</p>
+                            <p css={tw`text-xs text-neutral-600 text-center mt-1`}>of {diskLimit}</p>
                         </div>
                     </React.Fragment>
                 }

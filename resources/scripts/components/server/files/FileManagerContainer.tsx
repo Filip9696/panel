@@ -8,7 +8,7 @@ import { FileObject } from '@/api/server/files/loadDirectory';
 import NewDirectoryButton from '@/components/server/files/NewDirectoryButton';
 import { NavLink, useLocation } from 'react-router-dom';
 import Can from '@/components/elements/Can';
-import ServerError from '@/components/screens/ServerError';
+import { ServerError } from '@/components/elements/ScreenBlock';
 import tw from 'twin.macro';
 import Button from '@/components/elements/Button';
 import { ServerContext } from '@/state/server';
@@ -19,6 +19,7 @@ import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import { useStoreActions } from '@/state/hooks';
 import ErrorBoundary from '@/components/elements/ErrorBoundary';
 import { FileActionCheckbox } from '@/components/server/files/SelectFileCheckbox';
+import { hashToPath } from '@/helpers';
 
 const sortFiles = (files: FileObject[]): FileObject[] => {
     return files.sort((a, b) => a.name.localeCompare(b.name))
@@ -39,7 +40,7 @@ export default () => {
     useEffect(() => {
         clearFlashes('files');
         setSelectedFiles([]);
-        setDirectory(hash.length > 0 ? hash : '/');
+        setDirectory(hashToPath(hash));
     }, [ hash ]);
 
     useEffect(() => {
@@ -58,14 +59,14 @@ export default () => {
 
     return (
         <ServerContentBlock title={'File Manager'} showFlashKey={'files'}>
-            <div css={tw`flex flex-wrap-reverse md:flex-no-wrap justify-center mb-4`}>
+            <div css={tw`flex flex-wrap-reverse md:flex-nowrap justify-center mb-4`}>
                 <ErrorBoundary>
                     <FileManagerBreadcrumbs
                         renderLeft={
                             <FileActionCheckbox
                                 type={'checkbox'}
                                 css={tw`mx-4`}
-                                checked={selectedFilesLength === (files ? files.length : -1)}
+                                checked={selectedFilesLength === (files?.length === 0 ? -1 : files?.length)}
                                 onChange={onSelectAllClick}
                             />
                         }
@@ -73,7 +74,7 @@ export default () => {
                 </ErrorBoundary>
                 <Can action={'file.create'}>
                     <ErrorBoundary>
-                        <div css={tw`flex flex-shrink-0 flex-wrap-reverse md:flex-no-wrap justify-end mb-4 md:mb-0 ml-0 md:ml-auto`}>
+                        <div css={tw`flex flex-shrink-0 flex-wrap-reverse md:flex-nowrap justify-end mb-4 md:mb-0 ml-0 md:ml-auto`}>
                             <NewDirectoryButton css={tw`w-full flex-none mt-4 sm:mt-0 sm:w-auto sm:mr-4`}/>
                             <UploadButton css={tw`flex-1 mr-4 sm:flex-none sm:mt-0`}/>
                             <NavLink

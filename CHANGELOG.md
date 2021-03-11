@@ -3,6 +3,74 @@ This file is a running track of new features and fixes to each version of the pa
 
 This project follows [Semantic Versioning](http://semver.org) guidelines.
 
+## v1.3.1
+### Fixed
+* Fixes the Rust egg not properly seeding during the upgrade & installation process.
+* Fixes backups not being downloadable via the frontend.
+* Fixes backup listing showing the wrong number of existing backups based on the current page you're on.
+
+## v1.3.0
+### Fixed
+* Fixes administrator "Other Servers" toggle being persisted wrongly when signing out and signing into a non-administrator account on the server dashboard.
+* Fixes composer failing to run properly in local environments where there is no database connection available once configured.
+* Fixes SQL exception caused by the Panel attempting to store null values in the database.
+* Fixes validation errors caused by improper defaults when trying to edit system settings in the admin area.
+* Fixes console overflow when using smaller-than-default font sizes in Firefox.
+* Fixes console text input field having a white background when manually building new assets from the release build due to a missing `babel-macros` definition file.
+* Fixes database improperly using a signed `smallint` field rather than an unsigned field which restricted SFTP ports to 32767 or less.
+* Fixes server console resize handler to no longer encounter an exception at random that breaks the entire UI.
+* Fixes unhandled error caused by entering an invalid IP address or FQDN when creating a new node allocation.
+* Fixes unhandled error when Wings would fetch a server configuration from the Panel that uses an Egg with invalid JSON data for the configuration fields.
+* Fixes email not being sent to a user when their server is done installing.
+
+### Added
+* Adds support for automatically copying SFTP connection details when clicking into the text field.
+* Messaging about a node not having any allocations available for deployment has been adjusted to be more understandable by users.
+* Adds automated self-upgrade process for Pterodactyl Panel once this version is installed on servers. This allows users to update by using a single command.
+* Adds support for specifying a month when creating or modifying a server schedule.
+* Adds support for restoring backups (including those in S3 buckets) to a server and optionally deleting all existing files when doing so.
+* Adds underlying support for audit logging on servers. Currently this is only used by some internal functionality but will be slowly expanded as time permits to allow more robust logging.
+* Adds logic to automatically reset failed server states when Wings is rebooted. This will kick servers out of "installing" and "restoring from backup" states automatically.
+
+### Changed
+* Updated to `Laravel 8` and bumped minimum PHP version from `7.3` to `7.4` with PHP `8.0` being the recommended.
+* Server state is now stored in a single `status` column within the database rather than multiple different `tinyint` columns.
+
+## v1.2.2
+### Fixed
+* **[security]** Fixes authentication bypass allowing a user to take control of specific server actions such as executing schedules, rotating database passwords, and viewing or deleting a backup.
+
+## v1.2.1
+### Fixed
+* Fixes URL-encoding of filenames when working in the filemanager to fix issues when moving, renaming, or deleting files.
+* Fixes URL-encoding of email addresses when requesting a password reset.
+
+### Added
+* Adds the ability for users to select a base Java Docker image for most Minecraft specific eggs shipped as defaults.
+
+## v1.2.0
+### Fixed
+* Fixes newest backup being deleted when creating a new one using the schedule tasks, rather than the oldest backup.
+* Fixes multiple encoding issues when handling file names in the manager.
+* Fixes database password not properly being copied to the clipboard when clicked.
+* Fixes failed transfers unintentionally locking a server into a failed state and not properly releasing allocations that were reserved.
+* Fixes error box on server pages having an oval refresh button rather than a perfect circle.
+* Fixes a bunch of errors and usage issues relating to backups especially when uploading to S3-based systems.
+* Fixes HMR breaking navigation in development modes on the frontend.
+
+### Changed
+* Updated Paper egg to default to Java 11 as the base docker image.
+* Removes the file mode display from the File Manager row listing.
+* Updated input UI elements to have thicker borders and more consistent highlighting when active.
+* Changed searchbar toggle from `"k"` to `Cmd/Ctrl + "/"` to avoid accidental toggles and be more consistent with other sites.
+* Upgrades TailwindCSS to `v2`.
+
+### Added
+* Adds support for eggs to define multiple Docker images that can be selected by users (e.g. Java 8 & 11 images for a single egg).
+* Adds support for configuring the default interval for failed backups to be pruned from the system to avoid long running backups being incorrectly cleared.
+* Adds server transfer output logging to the server console allowing admins to see how a transfer is progressing directly in the UI.
+* Adds client API endpoint to download a file from a remote souce. This functionality is not currently expressed in the UI.
+
 ## v1.1.3
 ### Fixed
 * Server bulk power actions command will no longer attempt to run commands against installing or suspended servers.

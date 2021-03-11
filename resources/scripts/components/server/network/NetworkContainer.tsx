@@ -11,14 +11,12 @@ import Can from '@/components/elements/Can';
 import SpinnerOverlay from '@/components/elements/SpinnerOverlay';
 import getServerAllocations from '@/api/swr/getServerAllocations';
 import isEqual from 'react-fast-compare';
-import { Allocation } from '@/api/server/getServer';
 
 const NetworkContainer = () => {
     const [ loading, setLoading ] = useState(false);
     const uuid = ServerContext.useStoreState(state => state.server.data!.uuid);
     const allocationLimit = ServerContext.useStoreState(state => state.server.data!.featureLimits.allocations);
-    // @ts-ignore
-    const allocations: Allocation[] = ServerContext.useStoreState(state => state.server.data!.allocations, isEqual);
+    const allocations = ServerContext.useStoreState(state => state.server.data!.allocations, isEqual);
     const setServerFromState = ServerContext.useStoreActions(actions => actions.server.setServerFromState);
 
     const { clearFlashes, clearAndAddHttpError } = useFlash();

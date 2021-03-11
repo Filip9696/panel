@@ -14,21 +14,21 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $disk
  * @property string|null $checksum
  * @property int $bytes
+ * @property string|null $upload_id
  * @property \Carbon\CarbonImmutable|null $completed_at
  * @property \Carbon\CarbonImmutable $created_at
  * @property \Carbon\CarbonImmutable $updated_at
  * @property \Carbon\CarbonImmutable|null $deleted_at
- *
  * @property \Pterodactyl\Models\Server $server
  */
 class Backup extends Model
 {
     use SoftDeletes;
 
-    const RESOURCE_NAME = 'backup';
+    public const RESOURCE_NAME = 'backup';
 
-    const ADAPTER_WINGS = 'wings';
-    const ADAPTER_AWS_S3 = 's3';
+    public const ADAPTER_WINGS = 'wings';
+    public const ADAPTER_AWS_S3 = 's3';
 
     /**
      * @var string
@@ -46,8 +46,8 @@ class Backup extends Model
     protected $casts = [
         'id' => 'int',
         'is_successful' => 'bool',
-        'bytes' => 'int',
         'ignored_files' => 'array',
+        'bytes' => 'int',
     ];
 
     /**
@@ -64,7 +64,13 @@ class Backup extends Model
         'is_successful' => true,
         'checksum' => null,
         'bytes' => 0,
+        'upload_id' => null,
     ];
+
+    /**
+     * @var string[]
+     */
+    protected $guarded = ['id', 'created_at', 'updated_at', 'deleted_at'];
 
     /**
      * @var array
@@ -78,6 +84,7 @@ class Backup extends Model
         'disk' => 'required|string',
         'checksum' => 'nullable|string',
         'bytes' => 'numeric',
+        'upload_id' => 'nullable|string',
     ];
 
     /**

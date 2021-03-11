@@ -7,15 +7,10 @@ use Pterodactyl\Models\Server;
 
 class ServerConfigurationStructureService
 {
-    /**
-     * @var \Pterodactyl\Services\Servers\EnvironmentService
-     */
-    private $environment;
+    private EnvironmentService $environment;
 
     /**
      * ServerConfigurationStructureService constructor.
-     *
-     * @param \Pterodactyl\Services\Servers\EnvironmentService $environment
      */
     public function __construct(EnvironmentService $environment)
     {
@@ -27,29 +22,32 @@ class ServerConfigurationStructureService
      *
      * DO NOT MODIFY THIS FUNCTION. This powers legacy code handling for the new Wings
      * daemon, if you modify the structure eggs will break unexpectedly.
-     *
-     * @param \Pterodactyl\Models\Server $server
-     * @param bool $legacy deprecated
-     * @return array
      */
-    public function handle(Server $server, bool $legacy = false): array
+    public function handle(Server $server, array $override = [], bool $legacy = false): array
     {
-        return $legacy ?
-            $this->returnLegacyFormat($server)
-            : $this->returnCurrentFormat($server);
+        $clone = $server;
+        // If any overrides have been set on this call make sure to update them on the
+        // cloned instance so that the configuration generated uses them.
+        if (!empty($override)) {
+            $clone = $server->fresh();
+            foreach ($override as $key => $value) {
+                $clone->setAttribute($key, $value);
+            }
+        }
+
+        return $legacy
+            ? $this->returnLegacyFormat($clone)
+            : $this->returnCurrentFormat($clone);
     }
 
     /**
      * Returns the new data format used for the Wings daemon.
-     *
-     * @param \Pterodactyl\Models\Server $server
-     * @return array
      */
-    protected function returnCurrentFormat(Server $server)
+    protected function returnCurrentFormat(Server $server): array
     {
         return [
             'uuid' => $server->uuid,
-            'suspended' => $server->suspended,
+            'suspended' => $server->isSuspended(),
             'environment' => $this->environment->handle($server),
             'invocation' => $server->startup,
             'skip_egg_scripts' => $server->skip_scripts,
@@ -80,6 +78,10 @@ class ServerConfigurationStructureService
                     'read_only' => $mount->read_only,
                 ];
             }),
+            'egg' => [
+                'id' => $server->egg->uuid,
+                'file_denylist' => $server->egg->inherit_file_denylist,
+            ],
         ];
     }
 
@@ -87,11 +89,9 @@ class ServerConfigurationStructureService
      * Returns the legacy server data format to continue support for old egg configurations
      * that have not yet been updated.
      *
-     * @param \Pterodactyl\Models\Server $server
-     * @return array
      * @deprecated
      */
-    protected function returnLegacyFormat(Server $server)
+    protected function returnLegacyFormat(Server $server): array
     {
         return [
             'uuid' => $server->uuid,
@@ -118,7 +118,7 @@ class ServerConfigurationStructureService
                 'skip_scripts' => $server->skip_scripts,
             ],
             'rebuild' => false,
-            'suspended' => (int) $server->suspended,
+            'suspended' => $server->isSuspended() ? 1 : 0,
         ];
     }
 }
