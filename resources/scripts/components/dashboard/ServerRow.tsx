@@ -78,20 +78,6 @@ export default ({ server, className }: { server: Server; className?: string }) =
     const diskLimit = server.limits.disk !== 0 ? megabytesToHuman(server.limits.disk) : 'Unlimited';
     const memoryLimit = server.limits.memory !== 0 ? megabytesToHuman(server.limits.memory) : 'Unlimited';
 
-<<<<<<< HEAD
-    const clubType = server.eggFeatures[0];
-
-    let status = stats?.status;
-
-    if (clubType === 'static') {
-        if (status === 'offline') {
-            status = 'running';
-        } else {
-            status = 'starting';
-        }
-    }
-=======
->>>>>>> parent of 3c7f48f6... server row changes
     return (
         <StatusIndicatorBox as={Link} to={`/server/${server.id}`} className={className} $status={stats?.status}>
             <div css={tw`flex items-center col-span-12 sm:col-span-5 lg:col-span-6`}>
@@ -100,54 +86,11 @@ export default ({ server, className }: { server: Server; className?: string }) =
                 </div>
                 <div>
                     <p css={tw`text-lg break-words`}>{server.name}</p>
-                    <p>{server.eggFeatures[0]}</p>
                     {!!server.description &&
                     <p css={tw`text-sm text-neutral-300 break-words`}>{server.description}</p>
                     }
                 </div>
             </div>
-<<<<<<< HEAD
-            {
-                (clubType !== 'no_port' && clubType !== 'proxy_port' && clubType !== 'static') &&
-                    <div css={tw`hidden lg:col-span-2 lg:flex ml-4 justify-end h-full`}>
-                        <FontAwesomeIcon icon={faEthernet} css={tw`text-neutral-500`}/>
-                        <p css={tw`text-sm text-neutral-400 ml-2`}>
-                            {
-                                server.allocations.filter(alloc => alloc.isDefault).map(allocation => (
-                                    <React.Fragment key={allocation.ip + allocation.port.toString()}>
-                                        {allocation.alias || allocation.ip}:{allocation.port}
-                                    </React.Fragment>
-                                ))
-                            }
-                        </p>
-                    </div>
-            }
-            {
-                (clubType === 'proxy_port' || clubType === 'static') &&
-                <>
-                    <div css={tw`hidden lg:col-span-2 lg:flex ml-4 justify-end h-full`}>
-                        <FontAwesomeIcon icon={faGlobe} css={tw`text-neutral-500`}/>
-                        <p css={tw`text-sm text-neutral-400 ml-2`}>
-                            {
-                                'https://' + server.variables.find(x => x.envVariable === 'DOMAIN')?.serverValue
-                            }
-                        </p>
-                    </div>
-                    <div css={tw`hidden lg:col-span-2 lg:flex ml-4 justify-end h-full`}>
-                        <FontAwesomeIcon icon={faEthernet} css={tw`text-neutral-500`}/>
-                        <p css={tw`text-sm text-neutral-400 ml-2`}>
-                            {
-                                server.allocations.filter(alloc => alloc.isDefault).map(allocation => (
-                                    <React.Fragment key={allocation.port.toString()}>
-                                        :{allocation.port}
-                                    </React.Fragment>
-                                ))
-                            }
-                        </p>
-                    </div>
-                </>
-            }
-=======
             <div css={tw`hidden lg:col-span-2 lg:flex ml-4 justify-end h-full`}>
                 <FontAwesomeIcon icon={faEthernet} css={tw`text-neutral-500`}/>
                 <p css={tw`text-sm text-neutral-400 ml-2`}>
@@ -160,7 +103,6 @@ export default ({ server, className }: { server: Server; className?: string }) =
                     }
                 </p>
             </div>
->>>>>>> parent of 3c7f48f6... server row changes
             <div css={tw`hidden col-span-7 lg:col-span-4 sm:flex items-baseline justify-center`}>
                 {(!stats || isSuspended) ?
                     isSuspended ?

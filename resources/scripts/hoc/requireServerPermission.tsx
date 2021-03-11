@@ -1,31 +1,25 @@
 import React from 'react';
 import Can from '@/components/elements/Can';
-import ScreenBlock from '@/components/screens/ScreenBlock';
-import isEqual from 'react-fast-compare';
+import { ServerError } from '@/components/elements/ScreenBlock';
 
-const requireServerPermission = (Component: React.ComponentType<any>, permissions: string | string[]) => {
-    return class extends React.Component<any, any> {
-        shouldComponentUpdate (nextProps: Readonly<any>) {
-            return !isEqual(nextProps, this.props);
-        }
+export interface RequireServerPermissionProps {
+    permissions: string | string[]
+}
 
-        render () {
-            return (
-                <Can
-                    action={permissions}
-                    renderOnError={
-                        <ScreenBlock
-                            image={'/assets/svgs/server_error.svg'}
-                            title={'Access Denied'}
-                            message={'You do not have permission to access this page.'}
-                        />
-                    }
-                >
-                    <Component {...this.props}/>
-                </Can>
-            );
-        }
-    };
+const RequireServerPermission: React.FC<RequireServerPermissionProps> = ({ children, permissions }) => {
+    return (
+        <Can
+            action={permissions}
+            renderOnError={
+                <ServerError
+                    title={'Access Denied'}
+                    message={'You do not have permission to access this page.'}
+                />
+            }
+        >
+            {children}
+        </Can>
+    );
 };
 
-export default requireServerPermission;
+export default RequireServerPermission;
