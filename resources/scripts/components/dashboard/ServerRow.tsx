@@ -78,11 +78,11 @@ export default ({ server, className }: { server: Server; className?: string }) =
     const diskLimit = server.limits.disk !== 0 ? megabytesToHuman(server.limits.disk) : 'Unlimited';
     const memoryLimit = server.limits.memory !== 0 ? megabytesToHuman(server.limits.memory) : 'Unlimited';
 
-    const club_type = server.eggFeatures[0];
+    const clubType = server.eggFeatures[0];
 
     let status = stats?.status;
-    
-    if (club_type === 'static') {
+
+    if (clubType === 'static') {
         if (status === 'offline') {
             status = 'running';
         } else {
@@ -103,7 +103,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
                 </div>
             </div>
             {
-                (club_type !== 'no_port' && club_type !== 'proxy_port' && club_type !== 'static') &&
+                (clubType !== 'no_port' && clubType !== 'proxy_port' && clubType !== 'static') &&
                     <div css={tw`hidden lg:col-span-2 lg:flex ml-4 justify-end h-full`}>
                         <FontAwesomeIcon icon={faEthernet} css={tw`text-neutral-500`}/>
                         <p css={tw`text-sm text-neutral-400 ml-2`}>
@@ -118,12 +118,13 @@ export default ({ server, className }: { server: Server; className?: string }) =
                     </div>
             }
             {
-                (club_type === 'proxy_port' || club_type === 'static') && <>
+                (clubType === 'proxy_port' || clubType === 'static') &&
+                <>
                     <div css={tw`hidden lg:col-span-2 lg:flex ml-4 justify-end h-full`}>
                         <FontAwesomeIcon icon={faGlobe} css={tw`text-neutral-500`}/>
                         <p css={tw`text-sm text-neutral-400 ml-2`}>
                             {
-                                'https://' + server.variables.find(x => x.envVariable === "DOMAIN")?.serverValue
+                                'https://' + server.variables.find(x => x.envVariable === 'DOMAIN')?.serverValue
                             }
                         </p>
                     </div>

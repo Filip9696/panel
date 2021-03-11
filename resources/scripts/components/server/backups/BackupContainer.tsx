@@ -7,19 +7,19 @@ import { Context as ServerBackupContext } from '@/api/swr/getServerBackups';
 import Select from '@/components/elements/Select';
 import Label from '@/components/elements/Label';
 import TitledGreyBox from '@/components/elements/TitledGreyBox';
-import useSWR from 'swr'
+import useSWR from 'swr';
 
 const fetcher = (url: string): Promise<any> => {
     return fetch(url).then(res => res.json());
-}
-  
+};
+
 const BackupContainer = () => {
     const uuid = ServerContext.useStoreState(state => state.server.data!.uuid);
-    const [selected, setSelected] = useState('latest');
-    
+    const [ selected, setSelected ] = useState('latest');
+
     const handleChange = (evt) => {
         setSelected(evt.currentTarget.value);
-    }
+    };
 
     const { data: versions } = useSWR('https://backups-api.kiwatech.net/', fetcher);
     const { data: folder } = useSWR(`https://backups-api.kiwatech.net/${encodeURIComponent(selected)}/${uuid}/`, fetcher);
@@ -35,7 +35,7 @@ const BackupContainer = () => {
                             <Select onChange={handleChange}>
                                 {
                                     (!versions) ? 'loading' : versions.map(i => {
-                                        return <option value={i}>{new Date(i).toLocaleDateString()}</option>
+                                        return <option key={i} value={i}>{new Date(i).toLocaleDateString()}</option>;
                                     })
                                 }
                             </Select>
