@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import tw from 'twin.macro';
 import { ServerContext } from '@/state/server';
@@ -17,7 +17,7 @@ const BackupContainer = () => {
     const uuid = ServerContext.useStoreState(state => state.server.data!.uuid);
     const [ selected, setSelected ] = useState('latest');
 
-    const handleChange = (evt) => {
+    const handleChange = (evt: ChangeEvent<HTMLSelectElement>) => {
         setSelected(evt.currentTarget.value);
     };
 
@@ -34,7 +34,7 @@ const BackupContainer = () => {
                             <Label>Versions</Label>
                             <Select onChange={handleChange}>
                                 {
-                                    (!versions) ? 'loading' : versions.map(i => {
+                                    (!versions) ? 'loading' : versions.map((i: string) => {
                                         return <option key={i} value={i}>{new Date(i).toLocaleDateString()}</option>;
                                     })
                                 }
