@@ -105,13 +105,13 @@ export default () => {
     const handlePowerChangeEvent = async (state: string) => {
         if (state === 'offline') {
             await getFileContents(uuid, 'server.log')
-                .then((log) => terminal.write(log))
+                .then((log) => terminal.write(log.replaceAll('\n', '\r\n')))
                 .catch(error => {
                     console.error(error);
                 });
         }
         terminal.writeln(TERMINAL_PRELUDE + 'Server marked as ' + state + '...\u001b[0m');
-    }
+    };
 
     const handleCommandKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'ArrowUp') {
