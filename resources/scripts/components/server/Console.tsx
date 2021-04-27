@@ -14,6 +14,7 @@ import useEventListener from '@/plugins/useEventListener';
 import { debounce } from 'debounce';
 import { usePersistedState } from '@/plugins/usePersistedState';
 import { SocketEvent, SocketRequest } from '@/components/server/events';
+import getFileContents from '@/api/server/files/getFileContents';
 
 const theme = {
     background: th`colors.black`.toString(),
@@ -75,6 +76,7 @@ export default () => {
     const { connected, instance } = ServerContext.useStoreState(state => state.socket);
     const [ canSendCommands ] = usePermissions([ 'control.console' ]);
     const serverId = ServerContext.useStoreState(state => state.server.data!.id);
+    const uuid = ServerContext.useStoreState(state => state.server.data!.uuid);
     const isTransferring = ServerContext.useStoreState(state => state.server.data!.isTransferring);
     const [ history, setHistory ] = usePersistedState<string[]>(`${serverId}:command_history`, []);
     const [ historyIndex, setHistoryIndex ] = useState(-1);
@@ -100,9 +102,16 @@ export default () => {
         TERMINAL_PRELUDE + '\u001b[1m\u001b[41m' + line.replace(/(?:\r\n|\r|\n)$/im, '') + '\u001b[0m',
     );
 
-    const handlePowerChangeEvent = (state: string) => terminal.writeln(
-        TERMINAL_PRELUDE + 'Server marked as ' + state + '...\u001b[0m',
-    );
+    const handlePowerChangeEvent = async (state: string) => {
+        if (state === 'offline') {
+            await getFileContents(uuid, 'server.log')
+                .then((log) => terminal.write(log))
+                .catch(error => {
+                    console.error(error);
+                });
+        }
+        terminal.writeln(TERMINAL_PRELUDE + 'Server marked as ' + state + '...\u001b[0m');
+    }
 
     const handleCommandKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'ArrowUp') {
