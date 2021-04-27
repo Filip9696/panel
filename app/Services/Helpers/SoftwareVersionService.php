@@ -92,7 +92,7 @@ class SoftwareVersionService
             return true;
         }
 
-        return version_compare(config()->get('app.version'), $this->getPanel()) >= 0;
+        return version_compare(str_replace('kiwa-', '', config()->get('app.version')), $this->getPanel()) >= 0;
     }
 
     /**
