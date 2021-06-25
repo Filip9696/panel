@@ -4,7 +4,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import DropdownMenu, { DropdownButtonRow } from '@/components/elements/DropdownMenu';
 import getBackupDownloadUrl from '@/api/server/backups/getBackupDownloadUrl';
 import useFlash from '@/plugins/useFlash';
-import ChecksumModal from '@/components/server/backups/ChecksumModal';
 import SpinnerOverlay from '@/components/elements/SpinnerOverlay';
 import deleteBackup from '@/api/server/backups/deleteBackup';
 import ConfirmationModal from '@/components/elements/ConfirmationModal';
